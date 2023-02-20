@@ -139,7 +139,7 @@ For convenience, when `compute_posterior` is called, it sets attributes on `h` f
 
 ## Running MCMC
 
-We are almost there. We have define a grammar and a hypothesis which uses the grammar to define a prior, and custom code to define a likelihood. LOTlib3's main claim to fame is that we can simply import MCMC routines and do inference over the space defined by the grammar. It's very easy:
+We are almost there. We have defined a grammar and a hypothesis which uses the grammar to define a prior, and custom code to define a likelihood. LOTlib3's main claim to fame is that we can simply import MCMC routines and do inference over the space defined by the grammar. It's very easy:
 
 ```python
 from LOTlib3.Samplers.MetropolisHastings import MetropolisHastingsSampler
@@ -227,30 +227,26 @@ for h in sorted(count.keys(), key=lambda x: count[x]):
 	print(count[h], h.posterior_score, h)
 ```
 
-If our sampler is working correctly, it should be the case that the time average of the sampler (the `h`es from the for loop) should approximate the posterior distribution (e.g. their re-normalized scores). Let's use this code to see if that's true
+If our sampler is working correctly, it should be the case that the time average of the sampler (the `h` from the for loop) should approximate the posterior distribution (e.g. their re-normalized scores). Let's use this code to see if that's true
 
 ```python
-# Miscellaneous stores a number of useful functions. Here, we need logsumexp, which will
-# compute the normalizing constant for posterior_scores when they are in log space
+# Miscellaneous stores a number of useful functions. Here, we need logsumexp, which will compute the normalizing constant for posterior_scores when they are in log space
 from LOTlib3.Miscellaneous import logsumexp 
 from numpy import exp # but things that are handy in numpy are not duplicated (usually)
 
-# get a list of all the hypotheses we found. This is necessary because we need a fixed order,
-# which count.keys() does not guarantee unless we make a new variable. 
+# Get a list of all the hypotheses we found. This is necessary because we need a fixed order, which count.keys() does not guarantee unless we make a new variable. 
 hypotheses = count.keys() 
 
-# first convert posterior_scores to probabilities. To this, we'll use a simple hack of 
-# renormalizing the psoterior_scores that we found. This is a better estimator of each hypothesis'
-# probability than the counts from the sampler
+# First convert posterior_scores to probabilities. To this, we'll use a simple hack of renormalizing the psoterior_scores that we found. This is a better estimator of each hypothesis' probability than the counts from the sampler
 z = logsumexp([h.posterior_score for h in hypotheses])
 
 posterior_probabilities = [ exp(h.posterior_score - z) for h in hypotheses ]
 
-# and compute the probabilities over the sampler run
+# And compute the probabilities over the sampler run
 cntz = sum(count.values())    
 sampler_counts          = [ float(count[h])/cntz for h in hypotheses ] 
 
-## and let's just make a simple plot
+## And let's just make a simple plot
 import matplotlib.pyplot as pyplot
 fig = pyplot.figure()
 plt = fig.add_subplot(1,1,1)
