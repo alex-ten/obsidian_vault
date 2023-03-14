@@ -1,0 +1,3 @@
+- [ ] Write down the outline
+	- [ ] Decide on the main points (for now)
+	- [ ] Get a skeleton done

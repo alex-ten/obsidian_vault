@@ -1,0 +1,1 @@
+This model assumes that working memory consists of a limited number of discrete "memory slots". Each slot can hold one item or chunk at a time. If there are more items to remember than slots, WM capacity is exceeded and items that are not stored do not get to be represented at all.

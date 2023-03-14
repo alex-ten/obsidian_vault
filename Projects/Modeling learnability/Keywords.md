@@ -1,0 +1,12 @@
+- Context-free grammar
+	- What is a grammar?
+	- What is context-free?
+- Metropolis-Hastings sampling
+- Bayesian inference
+	- Prior
+	- Posterior
+	- Likelihood
+	- Inference
+- Entropy
+	- Surprisal
+	- Complexity

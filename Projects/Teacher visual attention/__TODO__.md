@@ -1,0 +1,2 @@
+- [ ] Read paper sent by Phillip
+- [ ] (Write down model description)

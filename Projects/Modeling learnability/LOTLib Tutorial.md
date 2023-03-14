@@ -77,7 +77,67 @@ t.fullprint()
 
 There is a column in this output that should say 'None' for each row of the output.  It is ok to ignore that for now.
 
-## Hypotheses
+## Primitives
+
+LOTlib3 also builds in a number of primitive operations, which live in LOTlib3.Primitives. When these are supplied as the `<FUNCTION>` in grammar rule, they act as functions that get called. **By convention, LOTlib3 internal primitives end in an underscore**. Here is an example equivalent to the grammar above, but using LOTlib3 function calls. 
+
+```python 
+grammar.add_rule('EXPR', 'plus_', ['EXPR', 'EXPR'], 1.0)
+grammar.add_rule('EXPR', 'times_', ['EXPR', 'EXPR'], 1.0)
+grammar.add_rule('EXPR', 'divide_(float(%s),float(%s))', ['EXPR', 'EXPR'], 1.0)
+grammar.add_rule('EXPR', 'neg_', ['EXPR'], 1.0)
+```
+
+Note that when these are rendered into strings, they appear as function calls (and not just string substitutions to make python code) as in
+
+```python
+    times_(plus_(x,neg_(1)), plus_(1,1))
+```
+
+There are many functions built-in to python, including a number of operations for manipulating sets, numbers, and logic. The code for `divide_` shows that it does not cast its arguments to floats: here we have to do so using string substitution as above.  For simple thing it is up to you to decide if you like to use the built in python operators (e.g. '+') or the LOTLib3 primitive ('plus_') as they are basically the same.
+
+You can also create new primitives which extends the functionality of LOTlib3 in many interesting way. To make a custom function accessible to LOTlib3's evaluator, use the `@primitive` decorator:
+
+```python
+from LOTlib3.Eval import primitive
+
+@primitive
+def my_stupid_primitive_(x):
+	return x+90253
+```
+
+Now if you use `my_stupid_primitive_` in a grammar rule, it can be "run" just like any normal python code
+
+```python
+grammar.add_rule('EXPR', 'my_stupid_primitive_', ['EXPR'], 1.0)
+```
+
+It is generally more friendly to give it an underscore to make sure it's not confused for a normal python function.
+
+## Nonterminals in the grammar
+
+It may not have been obvious in the above examples, but the `<NONTERMINAL>` part of each grammar rule can be viewed as specifying the *return type* of the function that rule correspond to, while the `<ARGUMENTS>` can be viewed as the types of the arguments. Thus, what a grammar mainly does is ensure that the primitives all get arguments of the correct types. 
+
+Let's see another example: suppose we had two kinds of things: booleans (BOOL) and numbers (EXPR). We might write a grammar like this
+
+```python
+grammar.add_rule('EXPR', 'plus_', ['EXPR', 'EXPR'], 1.0)
+grammar.add_rule('EXPR', 'times_', ['EXPR', 'EXPR'], 1.0)
+
+# Use something that renders into if statements in real python
+grammar.add_rule('EXPR', '(%s if %s else %s)', ['EXPR', 'BOOL', 'EXPR'], 1.0)
+
+# Now how do we get a boolean?
+grammar.add_rule('BOOL', '(%s > %s)', ['EXPR', 'EXPR'], 1.0)
+grammar.add_rule('BOOL', '(%s >= %s)', ['EXPR', 'EXPR'], 1.0)
+
+# And a terminal
+grammar.add_rule('EXPR', '1', 10.0)
+```
+
+Here, the second argument to the `if` line must be a BOOL, and so we have given LOTlib3 a way to create code that returns BOOLs. It just happens that this code is a comparison of numbers, or EXPRs. 
+
+# Hypotheses
 
 The grammar nicely specifies a space of expressions, but LOTlib3 needs a "hypothesis" to perform inference. In LOTlib3, hypotheses must define functions for computing priors, computing the likelihood of data, and implementing proposals in order for MCMC to work. In most cases, a hypothesis will represent a single production from the grammar.
 
@@ -137,7 +197,7 @@ For convenience, when `compute_posterior` is called, it sets attributes on `h` f
     print(h.posterior_score, h.prior, h.likelihood, h)
 ```
 
-## Running MCMC
+# Running MCMC
 
 We are almost there. We have defined a grammar and a hypothesis which uses the grammar to define a prior, and custom code to define a likelihood. LOTlib3's main claim to fame is that we can simply import MCMC routines and do inference over the space defined by the grammar. It's very easy:
 
@@ -255,66 +315,6 @@ plt.plot([0,1], [0,1], color='red')
 fig.show()
 ```
 
-## Primitives
-
-LOTlib3 also builds in a number of primitive operations, which live in LOTlib3.Primitives. When these are supplied as the `<FUNCTION>` in grammar rule, they act as functions that get called. **By convention, LOTlib3 internal primitives end in an underscore**. Here is an example equivalent to the grammar above, but using LOTlib3 function calls. 
-
-```python 
-grammar.add_rule('EXPR', 'plus_', ['EXPR', 'EXPR'], 1.0)
-grammar.add_rule('EXPR', 'times_', ['EXPR', 'EXPR'], 1.0)
-grammar.add_rule('EXPR', 'divide_(float(%s),float(%s))', ['EXPR', 'EXPR'], 1.0)
-grammar.add_rule('EXPR', 'neg_', ['EXPR'], 1.0)
-```
-
-Note that when these are rendered into strings, they appear as function calls (and not just string substitutions to make python code) as in
-
-```python
-    times_(plus_(x,neg_(1)), plus_(1,1))
-```
-
-There are many functions built-in to python, including a number of operations for manipulating sets, numbers, and logic. The code for `divide_` shows that it does not cast its arguments to floats: here we have to do so using string substitution as above.  For simple thing it is up to you to decide if you like to use the built in python operators (e.g. '+') or the LOTLib3 primitive ('plus_') as they are basically the same.
-
-You can also create new primitives which extends the functionality of LOTlib3 in many interesting way. To make a custom function accessible to LOTlib3's evaluator, use the `@primitive` decorator:
-
-```python
-from LOTlib3.Eval import primitive
-
-@primitive
-def my_stupid_primitive_(x):
-	return x+90253
-```
-
-Now if you use `my_stupid_primitive_` in a grammar rule, it can be "run" just like any normal python code
-
-```python
-grammar.add_rule('EXPR', 'my_stupid_primitive_', ['EXPR'], 1.0)
-```
-
-It is generally more friendly to give it an underscore to make sure it's not confused for a normal python function.
-
-## Nonterminals in the grammar
-
-It may not have been obvious in the above examples, but the `<NONTERMINAL>` part of each grammar rule can be viewed as specifying the *return type* of the function that rule correspond to, while the `<ARGUMENTS>` can be viewed as the types of the arguments. Thus, what a grammar mainly does is ensure that the primitives all get arguments of the correct types. 
-
-Let's see another example: suppose we had two kinds of things: booleans (BOOL) and numbers (EXPR). We might write a grammar like this
-
-```python
-grammar.add_rule('EXPR', 'plus_', ['EXPR', 'EXPR'], 1.0)
-grammar.add_rule('EXPR', 'times_', ['EXPR', 'EXPR'], 1.0)
-
-# Use something that renders into if statements in real python
-grammar.add_rule('EXPR', '(%s if %s else %s)', ['EXPR', 'BOOL', 'EXPR'], 1.0)
-
-# Now how do we get a boolean?
-grammar.add_rule('BOOL', '(%s > %s)', ['EXPR', 'EXPR'], 1.0)
-grammar.add_rule('BOOL', '(%s >= %s)', ['EXPR', 'EXPR'], 1.0)
-
-# And a terminal
-grammar.add_rule('EXPR', '1', 10.0)
-```
-
-Here, the second argument to the `if` line must be a BOOL, and so we have given LOTlib3 a way to create code that returns BOOLs. It just happens that this code is a comparison of numbers, or EXPRs. 
-
 ## The best hypotheses
 
 Very often, models in LOTlib3 approximate the full posterior distribution P(H|D) using the highest posterior hypotheses. There are two main ways to do this. One is a class named `LOTlib3.TopN` which acts like a set--you can add to it, but it keeps only the ones with highest posterior_score (or whatever "key" is set). It will return them to you in a sorted order:
@@ -341,9 +341,9 @@ for h in MetropolisHastingsSampler(h0, data, steps=10000):
 	tn << h
 ```
 
-You might notice running this that productions the results in the output 12 are given high posterior scores.  However, it still might be the case that very simple and short programs like just a single number output (like 0) are still the "top" hypothesis.  This shows the importance of thinking about the nature of your prior and the likelihood function for your problem.
+You might notice running this that productions that output 12 are given high posterior scores.  However, it still might be the case that very simple and short programs like just a single number output (like 0) are still the "top" hypothesis.  This shows the importance of thinking about the nature of your prior and the likelihood function for your problem.
 
-## Hypotheses as functions
+# Hypotheses as functions
 
 Remember how we made `display="lambda: %s"` in the definition of MyHypothesis? That stated that a hypothesis was not a function of any arguments since the `lambda` has no arguments. You may have noticed that when a hypothesis is converting to a string (for printing or evaling) it acquires this additional `lambda` on the outside, indicating that the hypothesis was a function of no arguments, or a [thunk](https://en.wikipedia.org/wiki/Thunk). 
 

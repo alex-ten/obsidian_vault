@@ -1,0 +1,1 @@
+This model assumes that working memory is a finite but continuous resource that is allocated evenly across items to be remembered. It makes different predictions compared to the [[Discrete-slots model of working memory|discrete-slots model]]. Namely, it predicts that as the number of items increases, representational quality for each item continuously deteriorates.

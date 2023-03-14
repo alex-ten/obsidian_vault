@@ -1,0 +1,2 @@
+- [ ] Figure out hot to measure WMC in change detection task (CDT)
+- [ ] Code the task

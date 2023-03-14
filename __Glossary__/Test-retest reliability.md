@@ -1,0 +1,3 @@
+**Test-retest reliability** is a measure of reliability obtained by administering the same test twice over a period of time to a group of individuals.  The scores from Time 1 and Time 2 can then be correlated in order to evaluate the test for stability over time. 
+
+_Example:_  A test designed to assess student learning in psychology could be given to a group of students twice, with the second administration perhaps coming a week after the first.  The obtained correlation coefficient would indicate the stability of the scores.
